@@ -1,6 +1,6 @@
 Name:                access-time
 Version:             0.1
-Cabal-Version:       >= 1.2
+Cabal-Version:       >= 1.6
 Category:            System
 Synopsis:            Cross-platform support for retrieving file access times
 Description:         Just a simple library that provides cross-platform support (Windows and Unix) for retrieving file access times
@@ -11,7 +11,7 @@ Maintainer:          Max Bolingbroke <batterseapower@hotmail.com>
 Homepage:            http://www.github.com/batterseapower/access-time
 Build-Type:          Simple
 
-Source-Repository master
+Source-Repository head
   type:     git
   location: git://github.com/batterseapower/access-time.git
 
