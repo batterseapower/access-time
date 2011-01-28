@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 module System.Directory.AccessTime (
     getAccessTime, getAccessTimeResolution
   ) where
@@ -22,9 +22,11 @@ epochTimeToClockTime x = TOD whole_secs (round fractional_picosecs)
 -- See <http://en.wikipedia.org/wiki/Stat_(Unix)>: time_t provides times accurate to 1 second
 getAccessTimeResolution _ = return $ noTimeDiff { tdSec = 1 }
 
-#elif defined(WIN32)
+#elif defined(WINDOWS)
 
 import Foreign.Ptr
+
+import System.FilePath.Windows
 
 import System.Win32.Time
 import System.Win32.Types
@@ -53,22 +55,22 @@ systemTimeToClockTime time = toClockTime $ CalendarTime {
 -- NTFS access time has a resolution of one hour.
 --
 -- If neither of those cases seem to apply, we assume a 1 second resolution
-accessTimeResolution fp = do
+getAccessTimeResolution fp = do
     fs <- getVolumeFileSystem (takeDrive fp)
     return $ case fs of "NTFS"        -> noTimeDiff { tdHour = 1 }
                         'F':'A':'T':_ -> noTimeDiff { tdDay = 1 }
                         _             -> noTimeDiff { tdSec = 1 }
 
 -- See http://msdn.microsoft.com/en-us/library/aa364993(v=VS.85).aspx
-foreign import "Windows.h GetVolumeInformationW" c_getVolumeInformationW :: LPCTSTR -- ^ lpRootPathName: A pointer to a string that contains the root directory of the volume to be described
-                                                                         -> LPTSTR  -- ^ lpVolumeNameBuffer: A pointer to a buffer that receives the name of a specified volume
-                                                                         -> DWORD   -- ^ nVolumeNameSize: The length of a volume name buffer, in TCHARs
-                                                                         -> LPDWORD -- ^ lpVolumeSerialNumber: A pointer to a variable that receives the volume serial number
-                                                                         -> LPDWORD -- ^ lpMaximumComponentLength: A pointer to a variable that receives the maximum length, in TCHARs, of a file name component that a specified file system supports
-                                                                         -> LPDWORD -- ^ lpFileSystemFlags: A pointer to a variable that receives flags associated with the specified file system
-                                                                         -> LPTSTR  -- ^ lpFileSystemNameBuffer: A pointer to a buffer that receives the name of the file system, for example, the FAT file system or the NTFS file system
-                                                                         -> DWORD   -- ^ nFileSystemNameSize: The length of the file system name buffer, in TCHARs
-                                                                         -> IO BOOL -- ^ If all the requested information is retrieved, the return value is nonzero. To get extended error information, call GetLastError.
+foreign import stdcall "Windows.h GetVolumeInformationW" c_getVolumeInformationW :: LPCTSTR -- ^ lpRootPathName: A pointer to a string that contains the root directory of the volume to be described
+                                                                                 -> LPTSTR  -- ^ lpVolumeNameBuffer: A pointer to a buffer that receives the name of a specified volume
+                                                                                 -> DWORD   -- ^ nVolumeNameSize: The length of a volume name buffer, in TCHARs
+                                                                                 -> LPDWORD -- ^ lpVolumeSerialNumber: A pointer to a variable that receives the volume serial number
+                                                                                 -> LPDWORD -- ^ lpMaximumComponentLength: A pointer to a variable that receives the maximum length, in TCHARs, of a file name component that a specified file system supports
+                                                                                 -> LPDWORD -- ^ lpFileSystemFlags: A pointer to a variable that receives flags associated with the specified file system
+                                                                                 -> LPTSTR  -- ^ lpFileSystemNameBuffer: A pointer to a buffer that receives the name of the file system, for example, the FAT file system or the NTFS file system
+                                                                                 -> DWORD   -- ^ nFileSystemNameSize: The length of the file system name buffer, in TCHARs
+                                                                                 -> IO BOOL -- ^ If all the requested information is retrieved, the return value is nonzero. To get extended error information, call GetLastError.
 
 getVolumeFileSystem :: FilePath -> IO String
 getVolumeFileSystem fp = withTString fp $ \fp_tstr -> withTString (replicate ' ' fs_len) $ \fs_tstr -> do
