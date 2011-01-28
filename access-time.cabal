@@ -6,7 +6,6 @@ Synopsis:            Cross-platform support for retrieving file access times
 Description:         Just a simple library that provides cross-platform support (Windows and Unix) for retrieving file access times
 License:             BSD3
 License-File:        LICENSE
-Extra-Source-Files:  README.textile
 Author:              Max Bolingbroke <batterseapower@hotmail.com>
 Maintainer:          Max Bolingbroke <batterseapower@hotmail.com>
 Homepage:            http://www.github.com/batterseapower/access-time
