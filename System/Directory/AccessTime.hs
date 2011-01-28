@@ -24,15 +24,20 @@ getAccessTimeResolution _ = return $ noTimeDiff { tdSec = 1 }
 
 #elif defined(WINDOWS)
 
+import Data.Bits
+import Data.List (genericReplicate)
+
 import Foreign.Ptr
 
 import Control.Exception (bracket)
 
 import System.FilePath.Windows
 
+import System.Win32.File
 import System.Win32.Time
 import System.Win32.Types
 
+-- TODO: I don't think CreateFile is throwing the right exceptions
 getAccessTime fp = bracket (createFile fp gENERIC_READ (fILE_SHARE_WRITE .|. fILE_SHARE_READ) Nothing oPEN_EXISTING fILE_ATTRIBUTE_NORMAL Nothing) closeHandle $ \h -> do
     (_creation_time, access_time, _write_time) <- getFileTime h
     fmap systemTimeToClockTime $ fileTimeToSystemTime access_time
@@ -40,7 +45,7 @@ getAccessTime fp = bracket (createFile fp gENERIC_READ (fILE_SHARE_WRITE .|. fIL
 systemTimeToClockTime :: SYSTEMTIME -> ClockTime
 systemTimeToClockTime time = toClockTime $ CalendarTime {
     ctYear = fromIntegral (wYear time),
-    ctMonth = fromIntegral (wMonth time),
+    ctMonth = toEnum (fromIntegral (wMonth time)),
     ctDay = fromIntegral (wDay time),
     ctHour = fromIntegral (wHour time),
     ctMin = fromIntegral (wMinute time),
@@ -75,8 +80,8 @@ foreign import stdcall "Windows.h GetVolumeInformationW" c_getVolumeInformationW
                                                                                  -> IO BOOL -- ^ If all the requested information is retrieved, the return value is nonzero. To get extended error information, call GetLastError.
 
 getVolumeFileSystem :: FilePath -> IO String
-getVolumeFileSystem fp = withTString fp $ \fp_tstr -> withTString (replicate ' ' fs_len) $ \fs_tstr -> do
-    failIfFalse_ "GetVolumeInformation" $ c_getVolumeInformationW fp_tstr nullPtr 0 nullPtr nullPtr nullPtr fs_tstr fs_len
+getVolumeFileSystem fp = withTString fp $ \fp_tstr -> withTString (genericReplicate fs_len ' ') $ \fs_tstr -> do
+    failIfFalse_ ("GetVolumeInformation " ++ show fp) $ c_getVolumeInformationW fp_tstr nullPtr 0 nullPtr nullPtr nullPtr fs_tstr fs_len
     peekTString fs_tstr
   where
     -- The documentation states that the file system name will never exceed this length
