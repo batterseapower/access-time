@@ -26,12 +26,14 @@ getAccessTimeResolution _ = return $ noTimeDiff { tdSec = 1 }
 
 import Foreign.Ptr
 
+import Control.Exception (bracket)
+
 import System.FilePath.Windows
 
 import System.Win32.Time
 import System.Win32.Types
 
-getAccessTime fp = do
+getAccessTime fp = bracket (createFile fp gENERIC_READ (fILE_SHARE_WRITE .|. fILE_SHARE_READ) Nothing oPEN_EXISTING fILE_ATTRIBUTE_NORMAL Nothing) closeHandle $ \h -> do
     (_creation_time, access_time, _write_time) <- getFileTime h
     fmap systemTimeToClockTime $ fileTimeToSystemTime access_time
 
