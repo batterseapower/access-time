@@ -58,13 +58,14 @@ systemTimeToClockTime time = toClockTime $ CalendarTime {
     ctIsDST = error "Documented as ignored: ctIsDST"
   }
 
--- See <http://msdn.microsoft.com/en-us/library/ms724320(v=vs.85).aspx>: FAT access time has a resolution of 1 day,
--- NTFS access time has a resolution of one hour.
+-- See <http://msdn.microsoft.com/en-us/library/ms724320(v=vs.85).aspx>: FAT access time has a resolution of 1 day.
+-- NTFS access time *may have updates delayed by up to one hour* but apparently stores a very high resolution value.
+-- Let's say that it is one second.
 --
 -- If neither of those cases seem to apply, we assume a 1 second resolution
 getAccessTimeResolution fp = do
     fs <- getVolumeFileSystem (takeDrive fp)
-    return $ case fs of "NTFS"        -> noTimeDiff { tdHour = 1 }
+    return $ case fs of "NTFS"        -> noTimeDiff { tdSec = 1 }
                         'F':'A':'T':_ -> noTimeDiff { tdDay = 1 }
                         _             -> noTimeDiff { tdSec = 1 }
 
@@ -105,5 +106,6 @@ getVolumeFileSystem fp = withTString fp $ \fp_tstr -> withTString (genericReplic
 getAccessTime :: FilePath -> IO ClockTime
 
 -- | Approximate resolution of access times on your system for the given file or directory.
--- Presently this will not attempt to determine whether access times are enabled on the relevant file system.
+--
+-- Presently this will not attempt to determine whether access times are actually enabled on the relevant file system.
 getAccessTimeResolution :: FilePath -> IO TimeDiff
