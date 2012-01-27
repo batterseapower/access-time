@@ -1,5 +1,5 @@
 Name:                access-time
-Version:             0.1.0.1
+Version:             0.1.0.2
 Cabal-Version:       >= 1.6
 Category:            System
 Synopsis:            Cross-platform support for retrieving file access times

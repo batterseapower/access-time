@@ -45,7 +45,7 @@ getAccessTime fp = bracket (createFile fp gENERIC_READ (fILE_SHARE_WRITE .|. fIL
 systemTimeToClockTime :: SYSTEMTIME -> ClockTime
 systemTimeToClockTime time = toClockTime $ CalendarTime {
     ctYear = fromIntegral (wYear time),
-    ctMonth = toEnum (fromIntegral (wMonth time)),
+    ctMonth = toEnum (fromIntegral (wMonth time) - 1),
     ctDay = fromIntegral (wDay time),
     ctHour = fromIntegral (wHour time),
     ctMin = fromIntegral (wMinute time),
