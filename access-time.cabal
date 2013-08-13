@@ -19,12 +19,12 @@ Library
         Exposed-Modules:        System.Directory.AccessTime
         
         if os(windows)
-                Build-Depends:          Win32 >= 2.0 && < 2.3
+                Build-Depends:          Win32 >= 2.0
                 Cpp-Options:            -DWINDOWS
                 Extra-Libraries:        "kernel32"
         else
                 -- We assume any non-Windows platform is Unix
-                Build-Depends:          unix >= 2.3 && < 2.6
+                Build-Depends:          unix >= 2.3
                 Cpp-Options:            -DUNIX
         
-        Build-Depends:          base >= 3 && < 5, old-time >= 1.0 && < 1.2, time >= 1.1 && < 1.5, filepath >= 1.1 && < 1.4
+        Build-Depends:          base >= 3 && < 5, old-time >= 1.0, time >= 1.1, filepath >= 1.1
